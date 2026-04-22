@@ -29,37 +29,37 @@
 
 ## Phase 1: Database & Models
 
-- [ ] **1.1** Migration: `users` — tambah kolom `phone`, `role` (enum: USER/STAFF/MANAGER), `avatar`, `soft_deletes`
-- [ ] **1.2** Migration: `categories` — id, name, timestamps
-- [ ] **1.3** Migration: `tickets` — id, title, description, status (enum: OPEN/IN_PROGRESS/PENDING/RESOLVED/CLOSED), priority, difficulty_level (1/2/3), category_id (FK), user_id (FK pembuat), staff_id (FK nullable handler), resolution_note, timestamps, soft_deletes
-- [ ] **1.4** Migration: `ticket_attachments` — id, ticket_id (FK cascade), file_path, file_name, file_type, context (enum: creation/resolution/chat), timestamps
-- [ ] **1.5** Migration: `chats` — id, ticket_id (FK), user_id (FK), message, type (text/voice/attachment), file_path, timestamps
-- [ ] **1.6** Migration: `leaderboard_logs` — id, staff_id (FK), ticket_id (FK), points, period_month, period_year, timestamps
-- [ ] **1.7** Migration: `wa_settings` — id, enabled (bool), status, session_data, timestamps
-- [ ] **1.8** Migration: `notification_templates` — id, event_type (unique), template_text, is_active, timestamps
-- [ ] **1.9** Eloquent Models — semua model dengan relationships, casts, scopes
-- [ ] **1.10** Seeder — default categories, admin user, sample data
+- [x] **1.1** Migration: `users` — tambah kolom `phone`, `role` (enum: USER/STAFF/MANAGER), `avatar`, `soft_deletes`
+- [x] **1.2** Migration: `categories` — id, name, timestamps
+- [x] **1.3** Migration: `tickets` — id, title, description, status (enum: OPEN/IN_PROGRESS/PENDING/RESOLVED/CLOSED), priority, difficulty_level (1/2/3), category_id (FK), user_id (FK pembuat), staff_id (FK nullable handler), resolution_note, timestamps, soft_deletes
+- [x] **1.4** Migration: `ticket_attachments` — id, ticket_id (FK cascade), file_path, file_name, file_type, context (enum: creation/resolution/chat), timestamps
+- [x] **1.5** Migration: `chats` — id, ticket_id (FK), user_id (FK), message, type (text/voice/attachment), file_path, timestamps
+- [x] **1.6** Migration: `leaderboard_logs` — id, staff_id (FK), ticket_id (FK), points, period_month, period_year, timestamps
+- [x] **1.7** Migration: `wa_settings` — id, enabled (bool), status, session_data, timestamps
+- [x] **1.8** Migration: `notification_templates` — id, event_type (unique), template_text, is_active, timestamps
+- [x] **1.9** Eloquent Models — semua model dengan relationships, casts, scopes + 6 PHP Enums
+- [x] **1.10** Seeder — default categories, admin user, sample tickets, notification templates, WA settings
 
 ---
 
 ## Phase 2: Authentication & Authorization
 
-- [ ] **2.1** Auth scaffolding — Login, Register, Logout (Breeze sudah handle)
-- [ ] **2.2** Register default role USER — override registration logic
-- [ ] **2.3** Middleware `role` — `EnsureUserHasRole` middleware untuk route protection
-- [ ] **2.4** Policy classes — `TicketPolicy`, `ChatPolicy`, `WhatsAppPolicy`
+- [x] **2.1** Auth scaffolding — Login, Register, Logout (Breeze sudah handle)
+- [x] **2.2** Register default role USER — override registration logic
+- [x] **2.3** Middleware `role` — `EnsureUserHasRole` middleware untuk route protection
+- [x] **2.4** Policy classes — `TicketPolicy` dengan claim, assign, setDifficulty, chat policies
 - [ ] **2.5** Rate limiting — `RateLimiter::for('login', ...)` di `AppServiceProvider`
 
 ---
 
 ## Phase 3: Ticket Management (Core Feature)
 
-- [ ] **3.1** `TicketController` — index (paginated + filter), show, store, claim, assign, updateStatus, pending, resolve, setDifficulty
-- [ ] **3.2** FormRequest classes — `CreateTicketRequest`, `ResolveTicketRequest`, `AssignTicketRequest`
-- [ ] **3.3** Ticket State Machine — service class `TicketStateMachine` yang enforce transisi valid per role
-- [ ] **3.4** File upload handling — store attachments di `storage/app/public/tickets/`
-- [ ] **3.5** React Pages — `Tickets/Index.tsx`, `Tickets/Show.tsx`, `Tickets/Create.tsx`
-- [ ] **3.6** React Components — `TicketActions.tsx` (role-based action buttons), `TicketFilters.tsx`, `StatusBadge.tsx`
+- [x] **3.1** `TicketController` — index (paginated + filter), show, store, claim, assign, updateStatus, resolve, setDifficulty
+- [x] **3.2** FormRequest classes — `CreateTicketRequest`, `ResolveTicketRequest`, `AssignTicketRequest`
+- [x] **3.3** Ticket State Machine — service class `TicketStateMachine` yang enforce transisi valid per role
+- [x] **3.4** File upload handling — store attachments di `storage/app/public/tickets/`
+- [x] **3.5** React Pages — `Tickets/Index.tsx`, `Tickets/Show.tsx`, `Tickets/Create.tsx`
+- [x] **3.6** React Components — `StatusBadge`, `PriorityBadge`, `Pagination`, `FlashMessage`, role-based action buttons
 
 ---
 
@@ -104,12 +104,12 @@
 
 ## Phase 8: Shared Layout & UI
 
-- [ ] **8.1** `AuthenticatedLayout.tsx` — shared layout dengan navbar role-based (hilangkan duplikasi)
-- [ ] **8.2** `GuestLayout.tsx` — layout untuk login/register
-- [ ] **8.3** `DashboardPage.tsx` — hub navigasi role-based
-- [ ] **8.4** Dark/Light mode — ThemeProvider context
-- [ ] **8.5** Error handling — error boundary + 404 page
-- [ ] **8.6** Loading states — skeleton components
+- [x] **8.1** `AuthenticatedLayout.tsx` — shared layout dengan navbar role-based + Lucide icons
+- [x] **8.2** `GuestLayout.tsx` — layout untuk login/register (Breeze default)
+- [x] **8.3** `DashboardPage.tsx` — hub navigasi role-based dengan stat cards + quick actions
+- [x] **8.4** Dark/Light mode — ThemeProvider context + ThemeToggle component
+- [x] **8.5** Error handling — Inertia error page (403, 404, 500, 503)
+- [x] **8.6** Loading states — Skeleton, CardSkeleton, TicketListSkeleton components
 
 ---
 

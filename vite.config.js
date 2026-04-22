@@ -12,4 +12,9 @@ export default defineConfig({
         react(),
         tailwindcss(),
     ],
+    server: {
+        watch: {
+            ignored: ['**/vendor/**', '**/node_modules/**', '**/storage/**'],
+        },
+    },
 });

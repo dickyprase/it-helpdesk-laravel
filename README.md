@@ -70,11 +70,13 @@ GRANT ALL PRIVILEGES ON DATABASE it_helpdesk TO helpdesk;
 \q
 ```
 
-### 5. Jalankan migration
+### 5. Jalankan migration dan seed data awal
 
 ```bash
-php artisan migrate
+php artisan migrate:fresh --seed
 ```
+
+Perintah ini akan membuat semua tabel dan mengisi data awal (kategori, user default, sample tiket, template notifikasi).
 
 ### 6. Setup storage
 
@@ -170,6 +172,20 @@ database/
 └── seeders/             # Database seeders
 ```
 
+## Akun Login Default
+
+Setelah menjalankan `php artisan migrate:fresh --seed`, akun-akun berikut tersedia:
+
+> **Password untuk semua akun:** `password`
+
+| Email | Role | Nama |
+|-------|------|------|
+| `admin@helpdesk.test` | MANAGER | Admin Manager |
+| `staff1@helpdesk.test` | STAFF | Staff Satu |
+| `staff2@helpdesk.test` | STAFF | Staff Dua |
+| `user1@helpdesk.test` | USER | User Satu |
+| `user2@helpdesk.test` | USER | User Dua |
+
 ## User Roles
 
 | Role | Akses |
@@ -177,6 +193,21 @@ database/
 | **USER** | Buat tiket, lihat tiket sendiri, chat pada tiket sendiri |
 | **STAFF** | Klaim/tangani tiket, set pending/resolve, chat pada tiket yang ditangani |
 | **MANAGER** | Kelola semua tiket, assign staff, tutup tiket, kelola WhatsApp Gateway & template |
+
+## Database Migrations
+
+Daftar tabel yang dibuat oleh migration:
+
+| Tabel | Deskripsi |
+|-------|-----------|
+| `users` | User dengan kolom tambahan: `phone`, `role` (USER/STAFF/MANAGER), `avatar`, soft deletes |
+| `categories` | Kategori tiket (Hardware, Software, Jaringan, dll) |
+| `tickets` | Tiket helpdesk dengan status state machine (OPEN → IN_PROGRESS → PENDING → RESOLVED → CLOSED) |
+| `ticket_attachments` | File lampiran tiket (context: creation/resolution/chat) |
+| `chats` | Pesan chat per tiket (text/voice/attachment) |
+| `leaderboard_logs` | Log poin gamifikasi staff (10 × difficulty level per tiket closed) |
+| `wa_settings` | Konfigurasi WhatsApp Gateway (singleton) |
+| `notification_templates` | Template notifikasi WhatsApp per event type |
 
 ## License
 
