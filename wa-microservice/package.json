@@ -1,0 +1,16 @@
+{
+    "name": "wa-microservice",
+    "description": "WhatsApp Gateway microservice (passive notification) using Baileys",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "node --watch index.js"
+    },
+    "dependencies": {
+        "baileys": "^7.0.0-rc.9",
+        "express": "^4.21.0",
+        "pino": "^9.0.0",
+        "qrcode-terminal": "^0.12.0"
+    }
+}

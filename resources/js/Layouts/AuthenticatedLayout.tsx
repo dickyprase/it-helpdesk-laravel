@@ -18,12 +18,12 @@ export default function AuthenticatedLayout({
     const navItems = [
         { name: 'Dashboard', href: 'dashboard', icon: LayoutDashboard, roles: ['USER', 'STAFF', 'MANAGER'] },
         { name: 'Tiket', href: 'tickets.index', icon: Ticket, roles: ['USER', 'STAFF', 'MANAGER'] },
-        { name: 'Leaderboard', href: 'leaderboard', icon: Trophy, roles: ['STAFF', 'MANAGER'], disabled: true },
-        { name: 'WhatsApp', href: 'whatsapp', icon: Settings, roles: ['MANAGER'], disabled: true },
+        { name: 'Leaderboard', href: 'leaderboard', icon: Trophy, roles: ['STAFF', 'MANAGER'] },
+        { name: 'WhatsApp', href: 'whatsapp.index', icon: Settings, roles: ['MANAGER'] },
     ];
 
     const visibleNav = navItems.filter(
-        (item) => item.roles.includes(user.role) && !item.disabled
+        (item) => item.roles.includes(user.role)
     );
 
     const roleBadgeColor = {

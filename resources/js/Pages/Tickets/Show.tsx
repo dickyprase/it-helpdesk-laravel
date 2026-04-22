@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import StatusBadge from '@/Components/Ticket/StatusBadge';
 import PriorityBadge from '@/Components/Ticket/PriorityBadge';
+import FloatingChat from '@/Components/Chat/FloatingChat';
 import InputError from '@/Components/InputError';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import {
@@ -27,6 +28,7 @@ export default function Show({
     canClaim,
     canAssign,
     canSetDifficulty,
+    canChat,
 }: Props) {
     const { auth } = usePage<SharedProps>().props;
     const user = auth.user;
@@ -154,6 +156,13 @@ export default function Show({
                     </div>
                 </div>
             </div>
+
+            {/* Floating Chat */}
+            <FloatingChat
+                ticketId={ticket.id}
+                currentUser={user}
+                canChat={canChat}
+            />
         </AuthenticatedLayout>
     );
 }

@@ -22,3 +22,9 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# WA Microservice
+/wa-microservice/node_modules
+/wa-microservice/.wa-auth
+/wa-microservice/session
+/session

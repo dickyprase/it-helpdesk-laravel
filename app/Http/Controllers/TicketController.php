@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AttachmentContext;
+use App\Enums\NotificationEventType;
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
 use App\Enums\UserRole;
+use App\Helpers\Sanitizer;
 use App\Http\Requests\AssignTicketRequest;
 use App\Http\Requests\CreateTicketRequest;
 use App\Http\Requests\ResolveTicketRequest;
@@ -15,10 +17,10 @@ use App\Models\Ticket;
 use App\Models\TicketAttachment;
 use App\Models\User;
 use App\Services\TicketStateMachine;
+use App\Services\WhatsAppNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -34,7 +36,6 @@ class TicketController extends Controller
         $query = Ticket::with(['user:id,name', 'staff:id,name', 'category:id,name'])
             ->latest();
 
-        // Filter berdasarkan role
         if ($user->isUser()) {
             $query->where('user_id', $user->id);
         } elseif ($user->isStaff()) {
@@ -43,21 +44,20 @@ class TicketController extends Controller
                   ->orWhere('status', TicketStatus::OPEN);
             });
         }
-        // MANAGER: lihat semua
 
-        // Filter status
         if ($request->filled('status') && $request->status !== 'ALL') {
-            $query->where('status', $request->status);
+            // Validasi status adalah enum yang valid
+            if (TicketStatus::tryFrom($request->status)) {
+                $query->where('status', $request->status);
+            }
         }
 
-        // Filter kategori
         if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
+            $query->where('category_id', (int) $request->category_id);
         }
 
-        // Search
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = Sanitizer::escapeLike($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'ilike', "%{$search}%")
                   ->orWhere('description', 'ilike', "%{$search}%")
@@ -66,7 +66,6 @@ class TicketController extends Controller
         }
 
         $tickets = $query->paginate(15)->withQueryString();
-
         $categories = Category::orderBy('name')->get(['id', 'name']);
 
         return Inertia::render('Tickets/Index', [
@@ -107,10 +106,12 @@ class TicketController extends Controller
             'status' => TicketStatus::OPEN,
         ]);
 
-        // Handle attachments
         if ($request->hasFile('attachments')) {
             $this->saveAttachments($ticket, $request->file('attachments'), AttachmentContext::CREATION);
         }
+
+        // Notifikasi WA: tiket dibuat
+        WhatsAppNotificationService::send(NotificationEventType::TICKET_CREATED, $ticket);
 
         return redirect()
             ->route('tickets.show', $ticket)
@@ -155,7 +156,6 @@ class TicketController extends Controller
     {
         $this->authorize('claim', $ticket);
 
-        // Gunakan transaction dengan SELECT FOR UPDATE untuk race condition
         DB::transaction(function () use ($request, $ticket) {
             $locked = Ticket::lockForUpdate()->find($ticket->id);
 
@@ -168,6 +168,12 @@ class TicketController extends Controller
                 'status' => TicketStatus::IN_PROGRESS,
             ]);
         });
+
+        // Refresh untuk dapat data terbaru
+        $ticket->refresh();
+
+        // Notifikasi WA: tiket sedang ditangani
+        WhatsAppNotificationService::send(NotificationEventType::TICKET_IN_PROGRESS, $ticket);
 
         return back()->with('success', 'Tiket berhasil diklaim.');
     }
@@ -185,6 +191,9 @@ class TicketController extends Controller
             'staff_id' => $request->staff_id,
             'status' => $newStatus,
         ]);
+
+        // Notifikasi WA: tiket di-assign ke staff
+        WhatsAppNotificationService::send(NotificationEventType::TICKET_ASSIGNED, $ticket);
 
         return back()->with('success', 'Staff berhasil di-assign.');
     }
@@ -219,6 +228,17 @@ class TicketController extends Controller
             ]);
         }
 
+        // Notifikasi WA berdasarkan status baru
+        $eventMap = [
+            TicketStatus::IN_PROGRESS->value => NotificationEventType::TICKET_IN_PROGRESS,
+            TicketStatus::PENDING->value => NotificationEventType::TICKET_PENDING,
+            TicketStatus::CLOSED->value => NotificationEventType::TICKET_CLOSED,
+        ];
+
+        if (isset($eventMap[$newStatus->value])) {
+            WhatsAppNotificationService::send($eventMap[$newStatus->value], $ticket);
+        }
+
         return back()->with('success', "Status tiket diubah ke {$newStatus->label()}.");
     }
 
@@ -241,6 +261,9 @@ class TicketController extends Controller
         if ($request->hasFile('attachments')) {
             $this->saveAttachments($ticket, $request->file('attachments'), AttachmentContext::RESOLUTION);
         }
+
+        // Notifikasi WA: tiket resolved
+        WhatsAppNotificationService::send(NotificationEventType::TICKET_RESOLVED, $ticket);
 
         return back()->with('success', 'Tiket berhasil di-resolve.');
     }
@@ -272,7 +295,7 @@ class TicketController extends Controller
             TicketAttachment::create([
                 'ticket_id' => $ticket->id,
                 'file_path' => $path,
-                'file_name' => $file->getClientOriginalName(),
+                'file_name' => Sanitizer::fileName($file->getClientOriginalName()),
                 'file_type' => $file->getClientMimeType(),
                 'context' => $context,
             ]);

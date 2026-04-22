@@ -4,7 +4,9 @@
     "type": "module",
     "scripts": {
         "build": "tsc && vite build",
-        "dev": "vite"
+        "dev": "concurrently -k -n laravel,vite,whatsapp -c blue,green,yellow \"php artisan serve\" \"vite\" \"node wa-microservice/index.js\"",
+        "dev:vite": "vite",
+        "dev:wa": "node wa-microservice/index.js"
     },
     "devDependencies": {
         "@headlessui/react": "^2.0.0",
@@ -29,6 +31,7 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
-        "lucide-react": "^1.8.0"
+        "lucide-react": "^1.8.0",
+        "qrcode.react": "^4.2.0"
     }
 }

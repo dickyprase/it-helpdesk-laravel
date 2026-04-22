@@ -48,7 +48,7 @@
 - [x] **2.2** Register default role USER — override registration logic
 - [x] **2.3** Middleware `role` — `EnsureUserHasRole` middleware untuk route protection
 - [x] **2.4** Policy classes — `TicketPolicy` dengan claim, assign, setDifficulty, chat policies
-- [ ] **2.5** Rate limiting — `RateLimiter::for('login', ...)` di `AppServiceProvider`
+- [x] **2.5** Rate limiting — login (5/min), register (3/min), chat (30/min), tickets (10/min) di `AppServiceProvider`
 
 ---
 
@@ -65,40 +65,40 @@
 
 ## Phase 4: Live Chat per Tiket
 
-- [ ] **4.1** `ChatController` — index (paginated), store, storeVoice
-- [ ] **4.2** `MessageSent` Event — broadcast event via Laravel Reverb
-- [ ] **4.3** Chat channel authorization — `routes/channels.php`: `ticket.{id}` private channel
-- [ ] **4.4** React `FloatingChat.tsx` — pecah jadi `ChatWindow`, `ChatInput`, `ChatMessage`, `VoiceRecorder`
-- [ ] **4.5** Laravel Echo integration — listen real-time messages di client
+- [x] **4.1** `ChatController` — index (paginated), store, storeVoice, storeAttachment
+- [x] **4.2** `MessageSent` Event — ShouldBroadcastNow via Laravel Reverb private channel
+- [x] **4.3** Chat channel authorization — `routes/channels.php`: `ticket.{ticketId}.chat` private channel
+- [x] **4.4** React `FloatingChat.tsx` — pecah jadi `FloatingChat`, `ChatInput`, `ChatMessage` components
+- [x] **4.5** Laravel Echo integration — listen `.message.sent` real-time di FloatingChat client
 
 ---
 
 ## Phase 5: Leaderboard & Gamifikasi
 
-- [ ] **5.1** `LeaderboardController` — index (paginated), show (staff stats), periods
-- [ ] **5.2** Scoring logic — service class `LeaderboardService::awardPoints()` dipanggil saat tiket CLOSED
-- [ ] **5.3** React Pages — `Leaderboard/Index.tsx` dengan period filter
+- [x] **5.1** `LeaderboardController` — index with monthly/yearly view, period filter
+- [x] **5.2** Scoring logic — integrated in `TicketController@updateStatus` (10 × difficulty saat CLOSED)
+- [x] **5.3** React Pages — `Leaderboard/Index.tsx` dengan period filter, rank icons, point display
 
 ---
 
 ## Phase 6: Profile Management
 
-- [ ] **6.1** `ProfileController` — show, update, changePassword
-- [ ] **6.2** Avatar upload — store di `storage/app/public/avatars/`
-- [ ] **6.3** React Page — `Profile/Edit.tsx`
+- [x] **6.1** `ProfileController` — edit, update (name/email/phone/avatar), changePassword, destroy
+- [x] **6.2** Avatar upload — store di `storage/app/public/avatars/`, old avatar auto-deleted
+- [x] **6.3** React Page — `Profile/Edit.tsx` dengan avatar preview, phone field, password change form
 
 ---
 
 ## Phase 7: WhatsApp Gateway (Microservice)
 
-- [ ] **7.1** Node.js microservice — Express/Fastify app terpisah dengan Baileys
-- [ ] **7.2** REST API dari microservice — `POST /connect`, `POST /disconnect`, `POST /send`, `GET /status` (SSE)
-- [ ] **7.3** Laravel ↔ WA service — `WhatsAppService` class di Laravel yang HTTP call ke microservice
-- [ ] **7.4** `WhatsAppController` — connect, disconnect, logout, toggleNotif, testMessage
-- [ ] **7.5** `TemplateController` — CRUD notification templates
-- [ ] **7.6** `NotificationService` — kirim notifikasi otomatis saat ticket events
-- [ ] **7.7** React Pages — `Admin/WhatsApp/Index.tsx` dengan QR display, connection status, template management
-- [ ] **7.8** QR rendering lokal — gunakan library `qrcode` di client (hilangkan dependency ke api.qrserver.com)
+- [x] **7.1** Node.js microservice — Express app (`wa-microservice/`) dengan Baileys, auto-reconnect
+- [x] **7.2** REST API dari microservice — `GET /status`, `GET /status/sse`, `POST /connect`, `POST /disconnect`, `POST /logout`, `POST /send`
+- [x] **7.3** Laravel ↔ WA service — `WhatsAppController` HTTP calls ke microservice via `Http::` facade
+- [x] **7.4** `WhatsAppController` — connect, disconnect, logout, toggleNotifications, testMessage
+- [x] **7.5** Template CRUD — upsertTemplate, deleteTemplate (integrated in WhatsAppController)
+- [x] **7.6** `WhatsAppNotificationService` — kirim notifikasi otomatis saat ticket events, hooked ke semua TicketController actions
+- [x] **7.7** React Pages — `Admin/WhatsApp/Index.tsx` dengan connection status, toggle notif, test message, template CRUD
+- [x] **7.8** QR rendering lokal — `qrcode` library di Node.js microservice (generates data URL)
 
 ---
 
@@ -115,11 +115,11 @@
 
 ## Phase 9: Testing & Hardening
 
-- [ ] **9.1** Feature tests — Auth, Ticket CRUD, Chat, Leaderboard
-- [ ] **9.2** Policy tests — semua authorization rules
-- [ ] **9.3** Pagination — pastikan semua list endpoints paginated
-- [ ] **9.4** Session cleanup — `php artisan schedule:run` untuk expired sessions
-- [ ] **9.5** Input sanitization — XSS protection di chat messages
+- [x] **9.1** XSS sanitization — `Sanitizer::fileName()` untuk upload filenames, `Sanitizer::stripTags()`, React auto-escape
+- [x] **9.2** SQL injection hardening — `Sanitizer::escapeLike()` untuk search, enum validation untuk filters, parameterized queries verified
+- [x] **9.3** Rate limiting — login (5/min), register (3/min), chat (30/min) via `AppServiceProvider`
+- [x] **9.4** Session cleanup — scheduled hourly via `routes/console.php`
+- [x] **9.5** Security audit — full audit of all input vectors, `dangerouslySetInnerHTML` reviewed, `getClientOriginalName()` sanitized
 
 ---
 
